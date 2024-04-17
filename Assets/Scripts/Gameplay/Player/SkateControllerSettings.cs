@@ -11,16 +11,23 @@ namespace ProjectJetSetRadio.Gameplay
         {
             Idle,
             Moving,
-            Boosting
+            Grinding,
+            WallRunning,
         }
         [Header("Horizonal Movement")]
-        [Header("Movement Speed")]
+        [Header("Speed")]
         public float baseMovementSpeed;
         public float skateMovementSpeed;
         public float boostMovementSpeed;
 
-        [Header("Movement Smoothing")]
+        [Header("Smoothing")]
         public float movementFriction;
+
+        [Header("Grind Settings")]
+        public float skateGrindSpeed;
+        public float boostGrindSpeed;
+        public float grindDirectionThreshold = .25f;
+        public float railDetectionRangeFromPlayer = 5.0f;
 
 
         [Header("Vertical Movement")]

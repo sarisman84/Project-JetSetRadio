@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spyro;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,8 @@ namespace ProjectJetSetRadio
 {
     public class CameraService
     {
+        public static CameraService Instance
+            => ServiceLocator<CameraService>.Service;
         public Camera MainCam { get; private set; }
         public void Init()
         {

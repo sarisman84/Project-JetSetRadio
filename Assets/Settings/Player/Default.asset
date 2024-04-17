@@ -16,6 +16,10 @@ MonoBehaviour:
   skateMovementSpeed: 12
   boostMovementSpeed: 24
   movementFriction: 5
+  skateGrindSpeed: 0
+  boostGrindSpeed: 0
+  grindDirectionThreshold: 0.25
+  railDetectionRangeFromPlayer: 5
   jumpHeight: 1
   fallMultiplier: 2.5
   lowJumpMultiplier: 2
@@ -24,4 +28,4 @@ MonoBehaviour:
     m_Extent: {x: 0.5, y: 0.1, z: 0.5}
   groundCollisionMask:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 72

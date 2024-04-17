@@ -9,6 +9,9 @@ namespace ProjectJetSetRadio.Gameplay
 {
     public class InputService
     {
+        public static InputService Instance =>
+                ServiceLocator<InputService>.Service;
+
         private InputActionAsset inputSettings;
 
         private Dictionary<string, InputAction> inputRegistry;

@@ -3,59 +3,35 @@ using Spyro.Debug;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using static ProjectJetSetRadio.Gameplay.SkateControllerSettings;
 
 namespace ProjectJetSetRadio.Gameplay
 {
-    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(BasicPlatformerController))]
     public class SkateController : MonoBehaviour
     {
         [Recursive]
         public SkateControllerSettings settings;
 
 
-        private Rigidbody body;
         private InputService input;
-        private MeshRenderer meshRenderer;
+        private BasicPlatformerController controller;
 
         private StateMachine<SkateState> skateState;
 
         private bool isSkating;
-        private Vector2 inputDir;
-        private bool isGrounded;
-        private Collider[] allocatedGroundColliderArray;
-
-
-        public float CurrentSpeed =>
-            (skateState.CurrentState) switch
-            {
-                SkateState.Idle => 0,
-                SkateState.Moving => isSkating ? settings.skateMovementSpeed : settings.baseMovementSpeed,
-                SkateState.Boosting => settings.boostMovementSpeed,
-                _ => 0
-            };
-        public Vector3 LocalInputDirection
-        {
-            get
-            {
-                var cam = ServiceLocator<CameraService>.Service.MainCam;
-                var result = cam.transform.right * inputDir.x + cam.transform.forward * inputDir.y;
-                result.y = 0;
-                return result;
-            }
-        }
+        private RailController currentRail;
 
         private void Start()
         {
             CommandSystem.AddCommand("respawn", "Respawns the player to the world origin", RespawnPlayer);
 
-
-            allocatedGroundColliderArray = new Collider[1];
-            body = GetComponent<Rigidbody>();
-            meshRenderer = GetComponentInChildren<MeshRenderer>();
+            controller = GetComponent<BasicPlatformerController>();
             input = ServiceLocator<InputService>.Service;
 
             skateState = new StateMachine<SkateState>(SkateState.Idle, InitStates());
@@ -85,146 +61,79 @@ namespace ProjectJetSetRadio.Gameplay
         {
             var states = new Dictionary<SkateState, Func<StateMachine<SkateState>, IEnumerator>>()
            {
-               {SkateState.Idle, OnIdle },
-               {SkateState.Moving, OnMove },
-               {SkateState.Boosting, OnBoosting }
+               {SkateState.Idle, HandleIdle },
+               {SkateState.Moving, HandleMovement },
+               {SkateState.WallRunning, HandleWallRunning},
+               {SkateState.Grinding, HandleGrindingOnRail }
            };
 
             return states;
         }
 
-        private IEnumerator OnBoosting(StateMachine<SkateState> machine)
+        private IEnumerator HandleGrindingOnRail(StateMachine<SkateState> machine)
         {
-            if (!input.GetButton("Boost"))
+
+
+
+            if (!HasLandedOnARail())
             {
-                machine.SetNextState(SkateState.Moving);
-                SetDebugMat(SkateState.Moving);
-                yield break;
+                var nextState = controller.Body.velocity.magnitude > 0.001f ? SkateState.Moving : SkateState.Idle;
+                machine.SetNextState(nextState);
+                Debug.Log($"Going to {(controller.Body.velocity.magnitude > 0.001f ? "moving" : "idle")} state");
             }
 
-            if (inputDir == Vector2.zero)
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        private IEnumerator HandleWallRunning(StateMachine<SkateState> machine)
+        {
+            yield return null;
+        }
+
+
+        private IEnumerator HandleMovement(StateMachine<SkateState> machine)
+        {
+            var skateSpeed = input.GetButton("Boost") ? settings.boostMovementSpeed : settings.skateMovementSpeed;
+            controller.speed = isSkating ? skateSpeed : settings.baseMovementSpeed;
+
+
+            if (controller.Body.velocity.magnitude < 0.001f)
             {
                 machine.SetNextState(SkateState.Idle);
-                SetDebugMat(SkateState.Idle);
+                Debug.Log("Going to idle state");
+            }
+
+            if (HasLandedOnARail())
+            {
+                //controller.SetHorizontalMovement(false);
+                machine.SetNextState(SkateState.Grinding);
+                Debug.Log("Going to grinding state");
             }
 
             yield return null;
         }
 
-
-        private IEnumerator OnMove(StateMachine<SkateState> machine)
+        private bool HasLandedOnARail()
         {
-            if (isSkating && input.GetButton("Boost"))
-            {
-                machine.SetNextState(SkateState.Boosting);
-                SetDebugMat(SkateState.Boosting);
-            }
+            if (!controller.IsGrounded)
+                return false;
 
-            if (inputDir == Vector2.zero)
-            {
-                machine.SetNextState(SkateState.Idle);
-                SetDebugMat(SkateState.Idle);
-                yield break;
-            }
-
-
-            yield return null;
+            return RailService.Instance.TryLandingOnRail(this, out currentRail);
         }
 
-        private IEnumerator OnIdle(StateMachine<SkateState> machine)
+        private IEnumerator HandleIdle(StateMachine<SkateState> machine)
         {
-            if (inputDir != Vector2.zero)
+            if (controller.Body.velocity.magnitude > 0.0001f)
             {
                 machine.SetNextState(SkateState.Moving);
-                SetDebugMat(SkateState.Moving);
+                Debug.Log("Going to moving state");
             }
 
             yield return null;
         }
 
-        private void SetDebugMat(SkateState nextState)
-        {
-            var mat = meshRenderer.sharedMaterial;
 
-            switch (nextState)
-            {
-                case SkateState.Idle:
-                    mat.color = Color.white;
-                    break;
-                case SkateState.Moving:
-                    mat.color = isSkating ? Color.cyan : Color.green;
-                    break;
-                case SkateState.Boosting:
-                    mat.color = Color.yellow;
-                    break;
-                default:
-                    mat.color = Color.magenta;
-                    break;
-            }
-        }
-
-        private void Update()
-        {
-            FetchInput();
-        }
-
-        private void FixedUpdate()
-        {
-            CheckGround();
-            UpdateBody();
-        }
-
-        private void UpdateBody()
-        {
-            HandleHorizontalVelocity();
-            HandleVerticalVelocity();
-        }
-
-        private void HandleHorizontalVelocity()
-        {
-            body.drag = isGrounded ? settings.movementFriction : 0;
-            body.velocity += LocalInputDirection * CurrentSpeed;
-            var clampedVelocity = Vector3.ClampMagnitude(body.velocity, CurrentSpeed);
-            body.velocity = new Vector3(clampedVelocity.x, body.velocity.y, clampedVelocity.z);
-        }
-
-        private void HandleVerticalVelocity()
-        {
-            if (isGrounded && Input.GetButton("Jump"))
-            {
-                body.velocity += Vector3.up * Mathf.Sqrt(2 * Mathf.Abs(Physics.gravity.y) * settings.jumpHeight);
-            }
-
-            if (body.velocity.y < 0)
-            {
-                body.velocity += Vector3.up * Physics.gravity.y * (settings.fallMultiplier - 1.0f) * Time.fixedDeltaTime;
-            }
-            else if (body.velocity.y > 0 && !input.GetButton("Jump"))
-            {
-                body.velocity += Vector3.up * Physics.gravity.y * (settings.lowJumpMultiplier - 1.0f) * Time.fixedDeltaTime;
-            }
-        }
-
-        private void CheckGround()
-        {
-            var results = Physics.OverlapBoxNonAlloc(transform.position + settings.groundCollider.center, settings.groundCollider.extents, allocatedGroundColliderArray, Quaternion.identity, settings.groundCollisionMask);
-            isGrounded = results > 0;
-        }
-
-        private void FetchInput()
-        {
-            isSkating = input.GetButtonDown("Skate") ? !isSkating : isSkating;
-            inputDir = input.GetAxis("Move");
-        }
-
-
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = isGrounded ? Color.red : Color.green;
-            Gizmos.DrawCube(transform.position + settings.groundCollider.center, settings.groundCollider.size);
-
-        }
     }
 
 }

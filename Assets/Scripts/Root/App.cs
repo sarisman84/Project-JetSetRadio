@@ -9,19 +9,24 @@ namespace ProjectJetSetRadio
 
     public class App : MonoBehaviour
     {
-        [Recursive]
         public InputActionAsset inputSettings;
+        [Header("Rail Settings")]
+        public LayerMask railMask;
 
         private void Awake()
         {
-            ServiceLocator<InputService>.Service.Init(inputSettings);
-            ServiceLocator<CameraService>.Service.Init();
+            InputService.Instance.Init(inputSettings);
+            CameraService.Instance.Init();
+         
         }
 
+        private void Update()
+        {
+        }
 
         private void OnDisable()
         {
-            ServiceLocator<InputService>.Service.Disable();
+            InputService.Instance.Disable();
         }
     }
 }

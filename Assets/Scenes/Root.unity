@@ -154,6 +154,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputSettings: {fileID: -944628639613478452, guid: 32f2d2ea378dc554c9899568d6ba28e6,
     type: 3}
+  railMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!4 &96883523
 Transform:
   m_ObjectHideFlags: 0

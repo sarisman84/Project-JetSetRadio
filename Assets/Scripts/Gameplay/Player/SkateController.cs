@@ -21,11 +21,14 @@ namespace ProjectJetSetRadio.Gameplay
 
         private InputService input;
         private BasicPlatformerController controller;
-
         private StateMachine<SkateState> skateState;
+        private Collider bodyCollider;
 
         private bool isSkating;
         private RailController currentRail;
+
+        public Bounds Hitbox
+            => controller.Hitbox;
 
         private void Start()
         {
@@ -33,6 +36,7 @@ namespace ProjectJetSetRadio.Gameplay
 
             controller = GetComponent<BasicPlatformerController>();
             input = ServiceLocator<InputService>.Service;
+            bodyCollider = GetComponentInChildren<Collider>();
 
             skateState = new StateMachine<SkateState>(SkateState.Idle, InitStates());
 
@@ -72,11 +76,26 @@ namespace ProjectJetSetRadio.Gameplay
 
         private IEnumerator HandleGrindingOnRail(StateMachine<SkateState> machine)
         {
+            currentRail.UpdateController(this);
 
+            var jumpInput = input.GetButton("Jump");
 
-
-            if (!HasLandedOnARail())
+            if (!jumpInput)
             {
+                var grindSpeed = input.GetButton("Boost") ? settings.boostGrindSpeed : settings.skateGrindSpeed;
+
+                transform.position = currentRail.NearestPointOnRail + (Vector3.up * bodyCollider.bounds.extents.y);
+
+                var dot = Vector3.Dot(controller.Body.velocity.normalized, currentRail.ForwardRailDirection);
+                var forwardDir = dot > 0 ? currentRail.ForwardRailDirection : -currentRail.ForwardRailDirection;
+
+                controller.Body.velocity = forwardDir * grindSpeed;
+            }
+
+            if (jumpInput || !RailService.Instance.TryGetClosestIntersectingRail(this, out _))
+            {
+                controller.GroundCheckOverride = false;
+                controller.SetHorizontalMovement(true);
                 var nextState = controller.Body.velocity.magnitude > 0.001f ? SkateState.Moving : SkateState.Idle;
                 machine.SetNextState(nextState);
                 Debug.Log($"Going to {(controller.Body.velocity.magnitude > 0.001f ? "moving" : "idle")} state");
@@ -106,7 +125,8 @@ namespace ProjectJetSetRadio.Gameplay
 
             if (HasLandedOnARail())
             {
-                //controller.SetHorizontalMovement(false);
+                controller.GroundCheckOverride = true;
+                controller.SetHorizontalMovement(false);
                 machine.SetNextState(SkateState.Grinding);
                 Debug.Log("Going to grinding state");
             }
@@ -116,10 +136,10 @@ namespace ProjectJetSetRadio.Gameplay
 
         private bool HasLandedOnARail()
         {
-            if (!controller.IsGrounded)
-                return false;
-
-            return RailService.Instance.TryLandingOnRail(this, out currentRail);
+            return
+                !controller.IsGrounded &&
+                controller.Body.velocity.y < 0 &&
+                RailService.Instance.TryGetClosestIntersectingRail(this, out currentRail);
         }
 
         private IEnumerator HandleIdle(StateMachine<SkateState> machine)

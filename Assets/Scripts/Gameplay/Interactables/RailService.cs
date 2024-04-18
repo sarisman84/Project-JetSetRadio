@@ -28,20 +28,19 @@ namespace ProjectJetSetRadio.Gameplay
         }
 
 
-        public bool TryLandingOnRail(SkateController player, out RailController targetRail)
+        public bool TryGetClosestIntersectingRail(SkateController player, out RailController targetRail)
         {
             targetRail = null;
             foreach (var rail in railRegistry.Values)
             {
-                if (rail.Contains(player.transform.position))
+                rail.UpdateController(player);
+                if (IsCloseToRail(rail, player))
                 {
-                    rail.UpdateController(player);
-                    if (IsCloseToRail(rail, player))
+                    if (rail.Intersects(player.Hitbox))
                     {
                         targetRail = rail;
                         return true;
                     }
-
                     return false;
                 }
             }

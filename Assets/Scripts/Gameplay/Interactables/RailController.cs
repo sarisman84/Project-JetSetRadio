@@ -14,6 +14,8 @@ namespace ProjectJetSetRadio.Gameplay
         private float _railProgress;
         private float3 _nearestPositionOnRail;
         private float _distanceFromRail;
+
+        public Vector3 boundsSizeOffset;
         public float RailProgress
             => _railProgress;
         public Vector3 NearestPointOnRail
@@ -26,13 +28,15 @@ namespace ProjectJetSetRadio.Gameplay
         public Vector3 RailNormal
             => Vector3.Normalize(Rail.EvaluateUpVector(_railProgress));
 
+
+
         public Bounds RailBounds
         {
             get
             {
                 var bounds = Rail.Spline.GetBounds();
-                bounds.center += transform.position;
-                bounds.size = new Vector3(bounds.size.x + 0.75f, bounds.size.y + 0.25f, bounds.size.z);
+                bounds.size = new Vector3(bounds.size.x + boundsSizeOffset.x, bounds.size.y + boundsSizeOffset.y, bounds.size.z + boundsSizeOffset.z);
+                bounds.center += transform.position + (Vector3.up * bounds.extents.y);
                 return bounds;
             }
         }
@@ -81,6 +85,12 @@ namespace ProjectJetSetRadio.Gameplay
         {
             var bounds = RailBounds;
             return bounds.Contains(point);
+        }
+
+        public bool Intersects(Bounds bounds)
+        {
+            var b = RailBounds;
+            return b.Intersects(bounds);
         }
 
         private void OnDrawGizmos()

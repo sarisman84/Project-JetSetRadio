@@ -12,6 +12,7 @@ namespace ProjectJetSetRadio.Gameplay
         private Collider[] allocGroundColliderArray = new Collider[5];
         private bool enableHorizontalMovement = true;
         private bool enableVerticalMovement = true;
+        private Collider bodyCollider;
 
         [Header("Horizontal Movement Settings")]
         public float speed;
@@ -27,6 +28,7 @@ namespace ProjectJetSetRadio.Gameplay
         public float lowJumpMultiplier;
 
         public bool IsGrounded { get; private set; }
+        public bool GroundCheckOverride { get; set; }
 
         public Collider[] GroundCollisionResults
             => allocGroundColliderArray;
@@ -45,6 +47,9 @@ namespace ProjectJetSetRadio.Gameplay
             }
         }
 
+        public Bounds Hitbox
+            => bodyCollider.bounds;
+
         public void SetHorizontalMovement(bool newState)
             => enableHorizontalMovement = newState;
         public void SetVerticalMovement(bool newState)
@@ -55,7 +60,7 @@ namespace ProjectJetSetRadio.Gameplay
         {
             input = InputService.Instance;
             body = GetComponent<Rigidbody>();
-
+            bodyCollider = GetComponentInChildren<Collider>();
 
         }
 
@@ -103,7 +108,7 @@ namespace ProjectJetSetRadio.Gameplay
         private void CheckGround()
         {
             var results = Physics.OverlapBoxNonAlloc(transform.position + groundCollisionBounds.center, groundCollisionBounds.extents, allocGroundColliderArray, Quaternion.identity, groundLayerMask);
-            IsGrounded = results > 0;
+            IsGrounded = results > 0 || GroundCheckOverride;
         }
 
         private void OnDrawGizmos()

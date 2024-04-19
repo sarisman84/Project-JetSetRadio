@@ -16,6 +16,7 @@ namespace ProjectJetSetRadio.Gameplay
         private float _distanceFromRail;
 
         public Vector3 boundsSizeOffset;
+        public Vector3 boundsCenterOffset;
         public float RailProgress
             => _railProgress;
         public Vector3 NearestPointOnRail
@@ -36,7 +37,7 @@ namespace ProjectJetSetRadio.Gameplay
             {
                 var bounds = Rail.Spline.GetBounds();
                 bounds.size = new Vector3(bounds.size.x + boundsSizeOffset.x, bounds.size.y + boundsSizeOffset.y, bounds.size.z + boundsSizeOffset.z);
-                bounds.center += transform.position + (Vector3.up * bounds.extents.y);
+                bounds.center += transform.position + (Vector3.up * bounds.extents.y) + boundsCenterOffset;
                 return bounds;
             }
         }

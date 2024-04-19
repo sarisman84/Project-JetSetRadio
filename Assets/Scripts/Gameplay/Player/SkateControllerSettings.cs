@@ -7,13 +7,21 @@ namespace ProjectJetSetRadio.Gameplay
     [CreateAssetMenu(fileName = "New Skate Controller Settings", menuName = "Gameplay/Skate Controller Settings", order = 0)]
     public class SkateControllerSettings : ScriptableObject
     {
-        public enum SkateState
+        public enum PlayerState
         {
             Idle,
             Moving,
             Grinding,
             WallRunning,
         }
+
+        public enum SubPlayerState
+        {
+            Walking,
+            Skating,
+            Boosting
+        }
+
         [Header("Horizonal Movement")]
         [Header("Speed")]
         public float baseMovementSpeed;

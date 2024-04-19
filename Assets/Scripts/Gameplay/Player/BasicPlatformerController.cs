@@ -110,11 +110,5 @@ namespace ProjectJetSetRadio.Gameplay
             var results = Physics.OverlapBoxNonAlloc(transform.position + groundCollisionBounds.center, groundCollisionBounds.extents, allocGroundColliderArray, Quaternion.identity, groundLayerMask);
             IsGrounded = results > 0 || GroundCheckOverride;
         }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = IsGrounded ? Color.red : Color.green;
-            Gizmos.DrawCube(transform.position + groundCollisionBounds.center, groundCollisionBounds.size);
-        }
     }
 }

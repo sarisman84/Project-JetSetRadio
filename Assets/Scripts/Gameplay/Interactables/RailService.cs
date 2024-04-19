@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 using Object = UnityEngine.Object;
 
 namespace ProjectJetSetRadio.Gameplay
@@ -16,6 +17,13 @@ namespace ProjectJetSetRadio.Gameplay
 
 
         private Dictionary<int, RailController> railRegistry;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void ManualReset()
+        {
+            if (Instance != null)
+                Instance.railRegistry = new Dictionary<int, RailController>();
+        }
 
 
         public RailService()

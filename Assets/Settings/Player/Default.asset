@@ -19,7 +19,7 @@ MonoBehaviour:
   skateGrindSpeed: 12
   boostGrindSpeed: 15
   grindDirectionThreshold: 0.25
-  railDetectionRangeFromPlayer: 5
+  railDetectionRangeFromPlayer: 1.5
   jumpHeight: 1
   fallMultiplier: 2.5
   lowJumpMultiplier: 2

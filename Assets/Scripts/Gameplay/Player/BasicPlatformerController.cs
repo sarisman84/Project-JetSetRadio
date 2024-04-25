@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 namespace ProjectJetSetRadio.Gameplay
@@ -90,7 +91,7 @@ namespace ProjectJetSetRadio.Gameplay
 
         private void HandleVerticalVelocity()
         {
-            if (IsGrounded && Input.GetButton("Jump"))
+            if (IsGrounded && input.GetButton("Jump"))
             {
                 body.velocity += Vector3.up * Mathf.Sqrt(2 * Mathf.Abs(Physics.gravity.y) * jumpHeight);
             }
@@ -109,6 +110,11 @@ namespace ProjectJetSetRadio.Gameplay
         {
             var results = Physics.OverlapBoxNonAlloc(transform.position + groundCollisionBounds.center, groundCollisionBounds.extents, allocGroundColliderArray, Quaternion.identity, groundLayerMask);
             IsGrounded = results > 0 || GroundCheckOverride;
+        }
+
+        public void SetGravity(bool active)
+        {
+            body.useGravity = active;
         }
     }
 }

@@ -11,17 +11,62 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
     [RequireComponent(typeof(UIDocument))]
     public class Debugger : MonoBehaviour
     {
+        enum DebugObjectType
+        {
+            Box,
+            Sphere
+        }
+
         private UIDocument document;
         private string currentInput;
         private bool hudState;
 
         private Dictionary<string, VisualElement> registeredElements = new Dictionary<string, VisualElement>();
+        private Dictionary<string, string> customData = new Dictionary<string, string>();
 
+        private Action[] allocatedDebugActions;
+        private int currentAction;
         public bool HudState
             => hudState;
 
+        public void SetCustomData(string key, string value)
+        {
+            if (!customData.ContainsKey(key))
+            {
+                customData.Add(key, value);
+                return;
+            }
+
+            customData[key] = value;
+        }
+
+        public void DrawCube(Vector3 position, Vector3 scale, Quaternion rotation, Color color)
+        {
+            var i = currentAction++;
+            TryResizeArray(i);
+
+            allocatedDebugActions[i] = () =>
+            {
+                Gizmos.color = color;
+                Gizmos.matrix = Matrix4x4.TRS(position, rotation, scale);
+                Gizmos.DrawCube(Vector3.zero, Vector3.one);
+                Gizmos.matrix = Matrix4x4.identity;
+            };
+        }
+
+        private void TryResizeArray(int i)
+        {
+            if (i >= allocatedDebugActions.Length)
+            {
+                var newArray = new Action[allocatedDebugActions.Length * 2];
+                Array.Copy(allocatedDebugActions, newArray, allocatedDebugActions.Length);
+                allocatedDebugActions = newArray;
+            }
+        }
+
         private void Awake()
         {
+            allocatedDebugActions = new Action[1000];
             DebugService.Instance.RegisterDebugger(this);
             document = GetComponent<UIDocument>();
             CommandSystem.AddCommand("show_debug", "Toggles a display given an argument", OnToggleDebug, new Arg("player"));
@@ -77,9 +122,11 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
             container.style.backgroundColor = new Color(0, 0, 0, 0.25f);
 
 
-            container.Add(registeredElements["player_state"]);
-            container.Add(registeredElements["player_sub_state"]);
-            container.Add(registeredElements["player_velocity"]);
+            foreach (var (id, element) in registeredElements)
+            {
+                if (id.Contains("player"))
+                    container.Add(element);
+            }
 
 
             root.Add(container);
@@ -102,6 +149,10 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
             label = registeredElements["player_velocity"] as Label;
             label.text = $"Velocity: {player.Body.velocity}";
 
+            label = registeredElements["player_input"] as Label;
+            if (customData.ContainsKey("player_input"))
+                label.text = $"Last Input: {customData["player_input"]}";
+
 
         }
 
@@ -111,6 +162,7 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
             AddTextElement("player_state");
             AddTextElement("player_velocity");
             AddTextElement("player_sub_state");
+            AddTextElement("player_input");
         }
 
 
@@ -147,6 +199,18 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
                     DrawPlayerDebug();
                     break;
             }
+
+
+            foreach (var action in allocatedDebugActions)
+            {
+                if (action != null)
+                    action();
+                else
+                    break;
+            }
+
+            Array.Clear(allocatedDebugActions, 0, allocatedDebugActions.Length);
+            currentAction = 0;
         }
 
         private void DrawPlayerDebug()
@@ -162,6 +226,30 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
 
             Gizmos.color = player.IsGrounded ? Color.red : Color.green;
             Gizmos.DrawCube(player.transform.position + player.settings.groundCollider.center, player.settings.groundCollider.size);
+
+            DrawPlayerMovementAxis(player);
+        }
+
+        private void DrawPlayerMovementAxis(SkateController player)
+        {
+            var ogMatrix = Gizmos.matrix;
+
+            var velocity = player.Body.velocity;
+
+            if (velocity.magnitude > 0.1f)
+            {
+                Gizmos.matrix = Matrix4x4.TRS(player.transform.position, Quaternion.LookRotation(velocity.normalized), new Vector3(0.15f, 0.15f, 3.0f));
+                Gizmos.color = Color.blue;
+                Gizmos.DrawCube(Vector3.zero, Vector3.one);
+
+                var upDir = Vector3.Cross(velocity.normalized, player.transform.right.normalized);
+
+                Gizmos.color = Color.green;
+                Gizmos.matrix = Matrix4x4.TRS(player.transform.position, Quaternion.LookRotation(upDir), new Vector3(0.15f, 0.15f, 3.0f));
+                Gizmos.DrawCube(Vector3.zero, Vector3.one);
+            }
+
+            Gizmos.matrix = ogMatrix;
         }
 
         private static void DrawPlayerState(SkateController player)
@@ -181,6 +269,7 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
                     Gizmos.color = Color.red;
                     break;
             }
+            Gizmos.color -= new Color(0, 0, 0, 0.5f);
             Gizmos.DrawCube(player.transform.position, player.Hitbox.size);
         }
     }

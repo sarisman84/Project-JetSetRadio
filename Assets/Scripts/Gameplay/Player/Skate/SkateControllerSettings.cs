@@ -23,7 +23,7 @@ namespace ProjectJetSetRadio.Gameplay
         }
 
         [Header("Horizonal Movement")]
-        [Header("Speed")]
+        [Header("General")]
         public float baseMovementSpeed;
         public float skateMovementSpeed;
         public float boostMovementSpeed;
@@ -31,11 +31,21 @@ namespace ProjectJetSetRadio.Gameplay
         [Header("Smoothing")]
         public float movementFriction;
 
-        [Header("Grind Settings")]
+        [Header("Grind Movement")]
+        [Header("General")]
         public float skateGrindSpeed;
         public float boostGrindSpeed;
         public float grindDirectionThreshold = .25f;
         public float railDetectionRangeFromPlayer = 5.0f;
+
+        [Header("Wall Running")]
+        [Header("General")]
+        public float baseWallRunSpeed;
+        public float boostWallRunSpeed;
+
+        [Header("Wall Detection")]
+        public LayerMask wallRunCollisionMask;
+        public float wallRunDetectionRange = 5.0f;
 
 
         [Header("Vertical Movement")]
@@ -44,8 +54,10 @@ namespace ProjectJetSetRadio.Gameplay
         public float fallMultiplier = 2.5f;
         public float lowJumpMultiplier = 2f;
 
-        [Header("Collision")]
+        [Header("Ground Collision")]
         public Bounds groundCollider;
         public LayerMask groundCollisionMask;
+
+
     }
 }

@@ -7,7 +7,7 @@
       "dependencies": {
         "com.unity.inputsystem": "1.7.0"
       },
-      "hash": "6268a7fa9d9e2321e676983e83d032f9be3b2bf2"
+      "hash": "f0153551138691b9e523f09b3c1f3a8bbd2775bd"
     },
     "com.unity.burst": {
       "version": "1.8.12",

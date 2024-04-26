@@ -18,9 +18,9 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
             Instance.debugger.SetCustomData(key, value);
         }
 
-        public static void DrawCube(Vector3 position, Vector3 scale, Quaternion rotation, Color color)
+        public static void DrawCube(string id, DebugDesc desc)
         {
-            Instance.debugger.DrawCube(position, scale, rotation, color);
+            Instance.debugger.DrawCube(id, desc);
         }
     }
 }

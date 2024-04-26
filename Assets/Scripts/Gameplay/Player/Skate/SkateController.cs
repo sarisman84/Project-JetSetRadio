@@ -212,7 +212,15 @@ namespace ProjectJetSetRadio.Gameplay
                 var dot = Vector3.Dot(controller.Body.velocity.normalized, localForwardDir);
                 var forwardDir = dot > 0 ? localForwardDir : -localForwardDir;
 
-                DebugService.DrawCube(transform.position + Vector3.one * 0.15f, new Vector3(0.05f, 0.05f, controller.Body.velocity.magnitude), Quaternion.LookRotation(forwardDir), Color.cyan);
+                var desc = new DebugDesc()
+                {
+                    position = transform.position + Vector3.one * 0.15f,
+                    scale = new Vector3(0.05f, 0.05f, controller.Body.velocity.magnitude),
+                    rotation = Quaternion.LookRotation(forwardDir),
+                    color = Color.cyan
+                };
+
+                DebugService.DrawCube("player", desc);
 
                 finalVelocity += forwardDir * controller.speed;
                 finalVelocity = Vector3.ClampMagnitude(finalVelocity, controller.speed);
@@ -379,7 +387,15 @@ namespace ProjectJetSetRadio.Gameplay
 
         private void Update()
         {
-            DebugService.DrawCube(transform.position, new Vector3(settings.wallRunDetectionRange * 2.0f, 0.15f, 0.15f), Quaternion.LookRotation(controller.Body.velocity.normalized), Color.red);
+            var desc = new DebugDesc()
+            {
+                position = transform.position,
+                scale = new Vector3(settings.wallRunDetectionRange * 2.0f, 0.15f, 0.15f),
+                rotation = Quaternion.LookRotation(controller.Body.velocity.normalized),
+                color = Color.red
+            };
+
+            DebugService.DrawCube("player", desc);
         }
 
         private void FixedUpdate()

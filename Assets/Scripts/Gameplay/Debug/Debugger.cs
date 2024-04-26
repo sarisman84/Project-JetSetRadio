@@ -8,6 +8,14 @@ using UnityEngine.UIElements;
 
 namespace ProjectJetSetRadio.Gameplay.CustomDebug
 {
+    public struct DebugDesc
+    {
+        public Vector3 position;
+        public Vector3 scale;
+        public Quaternion rotation;
+        public Color color;
+    }
+
     [RequireComponent(typeof(UIDocument))]
     public class Debugger : MonoBehaviour
     {
@@ -24,7 +32,7 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
         private Dictionary<string, VisualElement> registeredElements = new Dictionary<string, VisualElement>();
         private Dictionary<string, string> customData = new Dictionary<string, string>();
 
-        private Action[] allocatedDebugActions;
+        private Dictionary<string, List<Action>> debugActions = new Dictionary<string, List<Action>>();
         private int currentAction;
         public bool HudState
             => hudState;
@@ -40,33 +48,29 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
             customData[key] = value;
         }
 
-        public void DrawCube(Vector3 position, Vector3 scale, Quaternion rotation, Color color)
+        public void DrawCube(string id, DebugDesc desc)
         {
-            var i = currentAction++;
-            TryResizeArray(i);
-
-            allocatedDebugActions[i] = () =>
+            if (!debugActions.ContainsKey(id))
             {
-                Gizmos.color = color;
-                Gizmos.matrix = Matrix4x4.TRS(position, rotation, scale);
+                InitDebugObjectRegistry(id);
+            }
+
+            debugActions[id].Add(() =>
+            {
+                Gizmos.color = desc.color;
+                Gizmos.matrix = Matrix4x4.TRS(desc.position, desc.rotation, desc.scale);
                 Gizmos.DrawCube(Vector3.zero, Vector3.one);
                 Gizmos.matrix = Matrix4x4.identity;
-            };
+            });
         }
 
-        private void TryResizeArray(int i)
+        private void InitDebugObjectRegistry(string id)
         {
-            if (i >= allocatedDebugActions.Length)
-            {
-                var newArray = new Action[allocatedDebugActions.Length * 2];
-                Array.Copy(allocatedDebugActions, newArray, allocatedDebugActions.Length);
-                allocatedDebugActions = newArray;
-            }
+            debugActions.Add(id, new List<Action>(1000));
         }
 
         private void Awake()
         {
-            allocatedDebugActions = new Action[1000];
             DebugService.Instance.RegisterDebugger(this);
             document = GetComponent<UIDocument>();
             CommandSystem.AddCommand("show_debug", "Toggles a display given an argument", OnToggleDebug, new Arg("player"));
@@ -198,19 +202,9 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
                 case "player":
                     DrawPlayerDebug();
                     break;
+
+
             }
-
-
-            foreach (var action in allocatedDebugActions)
-            {
-                if (action != null)
-                    action();
-                else
-                    break;
-            }
-
-            Array.Clear(allocatedDebugActions, 0, allocatedDebugActions.Length);
-            currentAction = 0;
 
         }
 
@@ -229,6 +223,14 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
             Gizmos.DrawCube(player.transform.position + player.settings.groundCollider.center, player.settings.groundCollider.size);
 
             DrawPlayerMovementAxis(player);
+
+            foreach (var action in debugActions["player"])
+            {
+                action();
+            }
+
+            debugActions["player"].Clear();
+
         }
 
         private void DrawPlayerMovementAxis(SkateController player)

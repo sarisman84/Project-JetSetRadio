@@ -1,9 +1,5 @@
 ﻿using Spyro;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace ProjectJetSetRadio.Gameplay.CustomDebug
 {
@@ -16,5 +12,15 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
 
         public void RegisterDebugger(Debugger debugger)
             => this.debugger = debugger;
+
+        public static void SetCustomData(string key, string value)
+        {
+            Instance.debugger.SetCustomData(key, value);
+        }
+
+        public static void DrawCube(string id, DebugDesc desc)
+        {
+            Instance.debugger.DrawCube(id, desc);
+        }
     }
 }

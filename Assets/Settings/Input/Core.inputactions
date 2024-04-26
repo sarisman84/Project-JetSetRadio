@@ -109,11 +109,33 @@
                 },
                 {
                     "name": "",
+                    "id": "554cf379-45bd-419a-ba1e-302c124577a6",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Controller",
+                    "action": "move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "c66af5dd-b515-4604-a93e-ac78efd3e336",
                     "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard and Mouse",
+                    "action": "skate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8c86c688-b378-43ac-b145-be4036739641",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Controller",
                     "action": "skate",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -131,6 +153,17 @@
                 },
                 {
                     "name": "",
+                    "id": "7c68c4d0-5c90-4aa9-8ce5-c4c6705f1907",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Controller",
+                    "action": "boost",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "2e2a6695-487f-44c0-8fcb-85181344a0a8",
                     "path": "<Keyboard>/space",
                     "interactions": "",
@@ -142,11 +175,33 @@
                 },
                 {
                     "name": "",
+                    "id": "85e1fb5e-adf6-4217-94d9-6973c06927ba",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Controller",
+                    "action": "jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "73d724e3-0590-4227-a393-20c726814795",
                     "path": "<Mouse>/delta",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard and Mouse",
+                    "action": "look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e8fa03a2-4e0f-45f7-888f-092f681d4d5a",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Controller",
                     "action": "look",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -175,6 +230,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard and Mouse",
+                    "action": "escape",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6d54735b-ce5d-48de-99e3-006570bfe2bd",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Controller",
                     "action": "escape",
                     "isComposite": false,
                     "isPartOfComposite": false

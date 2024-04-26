@@ -1,4 +1,5 @@
-﻿using Spyro;
+﻿using ProjectJetSetRadio.Gameplay.CustomDebug;
+using Spyro;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,10 +16,14 @@ namespace ProjectJetSetRadio.Gameplay
         private InputActionAsset inputSettings;
 
         private Dictionary<string, InputAction> inputRegistry;
+        private Dictionary<string, bool> releasedInputRegistry;
+        private Dictionary<string, bool> pressedInputRegistry;
 
         public void Init(InputActionAsset _inputSettings)
         {
             inputRegistry = new Dictionary<string, InputAction>();
+            releasedInputRegistry = new Dictionary<string, bool>();
+            pressedInputRegistry = new Dictionary<string, bool>();
 
             inputSettings = _inputSettings;
 
@@ -27,6 +32,11 @@ namespace ProjectJetSetRadio.Gameplay
                 foreach (var action in actionMap.actions)
                 {
                     inputRegistry.Add(action.name, action);
+                    releasedInputRegistry.Add(action.name, false);
+                    pressedInputRegistry.Add(action.name, false);
+
+                    action.canceled += (c) => { releasedInputRegistry[action.name] = true; };
+                    action.started += (c) => { pressedInputRegistry[action.name] = true; };
                 }
             }
 
@@ -48,36 +58,28 @@ namespace ProjectJetSetRadio.Gameplay
         {
             var key = name.ToLower();
             if (inputRegistry.ContainsKey(key))
-                return inputRegistry[key].ReadValue<float>() > 0;
+            {
+                var result = inputRegistry[key].ReadValue<float>() > 0;
+                if (result)
+                {
+                    DebugService.SetCustomData("player_input", inputRegistry[key].name);
+                }
+                return result;
+            }
+
 
             return false;
         }
 
-        public bool GetButtonDown(string name)
+
+        public InputAction Get(string name)
         {
             var key = name.ToLower();
             if (inputRegistry.ContainsKey(key))
-            {
-                var action = inputRegistry[key];
-                return action.ReadValue<float>() > 0 && action.triggered;
-            }
+                return inputRegistry[key];
 
-            return false;
+            return default;
         }
-
-
-        public bool GetButtonUp(string name)
-        {
-            var key = name.ToLower();
-            if (inputRegistry.ContainsKey(key))
-            {
-                var action = inputRegistry[key];
-                return action.ReadValue<float>() < 1;
-            }
-
-            return false;
-        }
-
 
         public void Enable()
         {

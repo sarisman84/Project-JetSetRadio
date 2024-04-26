@@ -211,6 +211,7 @@ namespace ProjectJetSetRadio.Gameplay.CustomDebug
 
             Array.Clear(allocatedDebugActions, 0, allocatedDebugActions.Length);
             currentAction = 0;
+
         }
 
         private void DrawPlayerDebug()

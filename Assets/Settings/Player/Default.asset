@@ -12,23 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9da876e57f339b74596bbf72f023c78f, type: 3}
   m_Name: Default
   m_EditorClassIdentifier: 
-  baseMovementSpeed: 5
-  skateMovementSpeed: 10
-  boostMovementSpeed: 13
+  baseMovementSpeed: 10
+  skateMovementSpeed: 12
+  boostMovementSpeed: 17
   movementFriction: 5
-  skateGrindSpeed: 10
-  boostGrindSpeed: 13
+  skateGrindSpeed: 12
+  boostGrindSpeed: 17
   grindDirectionThreshold: 0.25
-  railDetectionRangeFromPlayer: 5
-  baseWallRunSpeed: 10
-  boostWallRunSpeed: 13
+  railDetectionRangeFromPlayer: 1.25
+  baseWallRunSpeed: 12
+  boostWallRunSpeed: 17
+  wallRunDurationInSeconds: 3
   wallRunCollisionMask:
     serializedVersion: 2
     m_Bits: 128
-  wallRunDetectionRange: 5
+  wallRunDetectionRange: 0.55
+  wallRunJumpHeight: 1
   jumpHeight: 1
-  fallMultiplier: 2.5
-  lowJumpMultiplier: 2
+  fallMultiplier: 3
+  lowJumpMultiplier: 4
   groundCollider:
     m_Center: {x: 0, y: -1, z: 0}
     m_Extent: {x: 0.15, y: 0.05, z: 0.15}

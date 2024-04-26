@@ -27,14 +27,9 @@ namespace ProjectJetSetRadio.Gameplay
 
         private RaycastHit leftDetection, rightDetection;
 
-        public bool HasDetectedLeftWall
-        {
-            get; private set;
-        }
-        public bool HasDetectedRightWall
-        {
-            get; private set;
-        }
+        public float CurrentWallRunDurationInSeconds { get; private set; }
+        public bool HasDetectedLeftWall { get; private set; }
+        public bool HasDetectedRightWall { get; private set; }
         public bool HasDetectedAWall
             => HasDetectedLeftWall || HasDetectedRightWall;
 
@@ -126,7 +121,6 @@ namespace ProjectJetSetRadio.Gameplay
 
         private IEnumerator OnWallRunExit(StateMachine<PlayerState> machine)
         {
-            controller.GroundCheckOverride = false;
             controller.SetHorizontalMovement(true);
             controller.SetVerticalMovement(true);
             controller.SetGravity(true);
@@ -136,7 +130,8 @@ namespace ProjectJetSetRadio.Gameplay
 
         private IEnumerator OnWallRunEnter(StateMachine<PlayerState> machine)
         {
-            controller.GroundCheckOverride = true;
+            CurrentWallRunDurationInSeconds = settings.wallRunDurationInSeconds;
+
             controller.SetHorizontalMovement(false);
             controller.SetVerticalMovement(false);
             controller.SetGravity(false);
@@ -207,21 +202,37 @@ namespace ProjectJetSetRadio.Gameplay
 
         private IEnumerator HandleWallRunning(StateMachine<PlayerState> machine)
         {
+            var jumpInput = input.GetButton("Jump");
+
             var hit = HasDetectedLeftWall ? leftDetection : rightDetection;
             var localForwardDir = Vector3.Cross(transform.up.normalized, hit.normal.normalized);
-            var dot = Vector3.Dot(controller.Body.velocity.normalized, localForwardDir);
-            var forwardDir = dot > 0 ? localForwardDir : -localForwardDir;
+            var finalVelocity = controller.Body.velocity;
+            if (!jumpInput)
+            {
+                var dot = Vector3.Dot(controller.Body.velocity.normalized, localForwardDir);
+                var forwardDir = dot > 0 ? localForwardDir : -localForwardDir;
 
-            DebugService.DrawCube(transform.position + Vector3.one * 0.15f, new Vector3(0.05f, 0.05f, controller.Body.velocity.magnitude), Quaternion.LookRotation(forwardDir), Color.cyan);
+                DebugService.DrawCube(transform.position + Vector3.one * 0.15f, new Vector3(0.05f, 0.05f, controller.Body.velocity.magnitude), Quaternion.LookRotation(forwardDir), Color.cyan);
 
-            controller.Body.velocity = forwardDir * controller.speed;
+                finalVelocity += forwardDir * controller.speed;
+                finalVelocity = Vector3.ClampMagnitude(finalVelocity, controller.speed);
+                finalVelocity += Vector3.up * Physics.gravity.y * (settings.fallMultiplier - 1.0f) * Time.fixedDeltaTime;
+            }
+            else
+            {
+                finalVelocity += BasicPlatformerController.CalculateJumpForce(hit.normal.normalized, settings.wallRunJumpHeight);
+            }
+
+            controller.Body.velocity = finalVelocity;
 
 
-            if (!HasDetectedAWall)
+            if (!HasDetectedAWall || IsGrounded || CurrentWallRunDurationInSeconds <= 0)
             {
                 var nextState = controller.Body.velocity.magnitude > 0.001f ? PlayerState.Moving : PlayerState.Idle;
                 yield return machine.SetNextState(nextState);
             }
+
+            CurrentWallRunDurationInSeconds -= Time.fixedDeltaTime;
 
             yield return new WaitForFixedUpdate();
         }
@@ -264,7 +275,7 @@ namespace ProjectJetSetRadio.Gameplay
             var isNotWalking = subPlayerState.CurrentState != SubPlayerState.Walking;
             var isNotWallRunning = playerState.CurrentState != PlayerState.WallRunning;
 
-            if (HasDetectedAWall && !IsGrounded && isNotWalking)
+            if (HasDetectedAWall && !IsGrounded && isNotWalking && CurrentWallRunDurationInSeconds > 0)
             {
                 yield return playerState.SetNextState(PlayerState.WallRunning);
             }
@@ -283,6 +294,11 @@ namespace ProjectJetSetRadio.Gameplay
 
                 yield return machine.SetNextState(PlayerState.Grinding);
                 Debug.Log("Going to grinding state");
+            }
+
+            if (IsGrounded)
+            {
+                CurrentWallRunDurationInSeconds = settings.wallRunDurationInSeconds;
             }
 
             yield return null;
@@ -363,7 +379,7 @@ namespace ProjectJetSetRadio.Gameplay
 
         private void Update()
         {
-            DebugService.DrawCube(transform.position, new Vector3(settings.wallRunDetectionRange, 0.15f, 0.15f), Quaternion.LookRotation(controller.Body.velocity.normalized), Color.red);
+            DebugService.DrawCube(transform.position, new Vector3(settings.wallRunDetectionRange * 2.0f, 0.15f, 0.15f), Quaternion.LookRotation(controller.Body.velocity.normalized), Color.red);
         }
 
         private void FixedUpdate()

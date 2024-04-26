@@ -93,7 +93,7 @@ namespace ProjectJetSetRadio.Gameplay
         {
             if (IsGrounded && input.GetButton("Jump"))
             {
-                body.velocity += Vector3.up * Mathf.Sqrt(2 * Mathf.Abs(Physics.gravity.y) * jumpHeight);
+                body.velocity += CalculateJumpForce(Vector3.up, jumpHeight);
             }
 
             if (body.velocity.y < 0)
@@ -115,6 +115,12 @@ namespace ProjectJetSetRadio.Gameplay
         public void SetGravity(bool active)
         {
             body.useGravity = active;
+        }
+
+
+        public static Vector3 CalculateJumpForce(Vector3 direction, float jumpHeight)
+        {
+            return direction * Mathf.Sqrt(2 * Mathf.Abs(Physics.gravity.y) * jumpHeight);
         }
     }
 }

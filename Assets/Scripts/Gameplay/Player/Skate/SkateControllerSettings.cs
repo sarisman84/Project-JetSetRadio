@@ -42,10 +42,14 @@ namespace ProjectJetSetRadio.Gameplay
         [Header("General")]
         public float baseWallRunSpeed;
         public float boostWallRunSpeed;
+        public float wallRunDurationInSeconds;
 
         [Header("Wall Detection")]
         public LayerMask wallRunCollisionMask;
         public float wallRunDetectionRange = 5.0f;
+
+        [Header("Jump Settings")]
+        public float wallRunJumpHeight = 1.0f;
 
 
         [Header("Vertical Movement")]
